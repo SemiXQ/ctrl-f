@@ -2,6 +2,7 @@ import os
 import json
 import nltk
 from nltk.tokenize import sent_tokenize, word_tokenize
+from collections import deque
 
 nltk.download('punkt')
 
@@ -83,3 +84,92 @@ def init_dict():
             # with open(sentences_ref_file_path, 'w') as file:
             #     for sentence in sentences:
             #         file.write(sentence+'\n')
+
+def _load_dict(filename):
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    file_dict_path = os.path.join(base_dir, '..', 'doc/docdicts')
+    dict_file_path = os.path.join(file_dict_path, f'{filename}_dict.txt')
+
+    with open(dict_file_path, 'r') as file:
+        lines = file.readlines()
+
+    loaded_dict = {}
+
+    # parse the dictionary of the original file
+    for line in lines:
+        json_obj = json.loads(line)
+        key, value = list(json_obj.items())[0]
+        loaded_dict[key] = value
+    return loaded_dict
+
+def _read_sentences(filename):
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(base_dir, '..', 'doc', f'{filename}.txt')
+
+    with open(file_path, 'r') as file:
+        text = file.read()
+        sentences = sent_tokenize(text)
+
+    return sentences
+
+def build_search_result_info(sentences, line_idx, start_idx, end_idx, sentence_idx):
+    new_dict = {}
+    new_dict["line"] = line_idx
+    new_dict["start"] = start_idx
+    new_dict["end"] = end_idx
+    new_dict["in_sentence"] = sentences[sentence_idx]
+    return new_dict
+
+def searchText(filename, searchContent):
+    searchContent = searchContent.replace("%20", " ")
+    word_dict = _load_dict(filename)
+    print("successfully load word_dict", len(word_dict))
+    sentences = _read_sentences(filename)
+    print("successfully load sentences", len(sentences))
+    word_in_search = word_tokenize(searchContent)
+    word_sentence_set_list = []
+    word_infos = []
+    # TODO: change it and make the last word work as a prefix later
+    noMatch = False
+    keys = word_dict.keys()
+    for word in word_in_search:
+        if word not in keys:
+            noMatch = True
+            break
+        else:
+            word_info = word_dict[word]
+            word_infos.append(word_info)
+            word_sentence_idx = [info['sentence_idx'] for info in word_info]
+            word_sentence_set_list.append(set(word_sentence_idx))
+    if not noMatch:
+        # check if the words are in the same sentence
+        ref = word_sentence_set_list[0]
+        for i in range(1, len(word_sentence_set_list)):
+            ref = ref & word_sentence_set_list[i]
+        noMatch = (len(ref)==0)
+    if noMatch:
+        return {}
+    # if match exists
+    word_sentence_set_list = ref
+    occurencies = []
+    for sentence_idx in word_sentence_set_list:
+        # TODO: fix later - current version it might facing issue in the case Now,...is..Now is...., when searching Now is
+        # maybe use deque and check it based on the index of the first word and last word?
+        line_idx, start_idx, end_idx = -1, -1, -1
+        for info in word_infos[0]:
+            if info['sentence_idx'] == sentence_idx:
+                line_idx = info["line_idx"]
+                start_idx = info["start"]
+                break
+        for info in word_infos[-1]:
+            if info['sentence_idx'] == sentence_idx:
+                end_idx = info['end']
+                break
+        res = build_search_result_info(sentences, line_idx, start_idx, end_idx, sentence_idx)
+        occurencies.append(res)
+
+    res_dict = {}
+    res_dict["query_text"] = searchContent
+    res_dict["number_of_occurrences"] = len(occurencies)
+    res_dict["occurences"] = occurencies
+    return res_dict

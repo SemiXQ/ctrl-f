@@ -1,6 +1,6 @@
 from .entities.entity import Session, engine, Base
 from .entities.exam import Exam, ExamSchema
-from .docdict.docdict import init_dict
+from .docdict.docdict import init_dict, searchText
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
@@ -11,10 +11,14 @@ CORS(app)
 # generate database schema
 Base.metadata.create_all(engine)
 
-@app.route('/init', methods=['GET'])
-def get_dictionary():
+@app.before_request
+def before_request_handler():
     init_dict()
-    return jsonify({}), 200
+
+# @app.route('/init', methods=['GET'])
+# def get_dictionary():
+#     init_dict()
+#     return jsonify({}), 200
 
 @app.route('/test')
 def get_test():
@@ -28,7 +32,15 @@ def init_text(filename):
             content = file.read()
             return jsonify({"content": content}), 200
     except FileNotFoundError:
-        return jsonify({"error": "File not found"})
+        return jsonify({"error": "File not found"}), 404
+
+@app.route('/search_text/<string:filename>/<string:searchContent>')
+def search_text(filename, searchContent):
+    try:
+        response = searchText(filename, searchContent)
+        return jsonify(response), 200
+    except FileNotFoundError:
+        return jsonify({"error": "File not found"}), 404
 
 @app.route('/exams')
 def get_exams():

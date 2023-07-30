@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Exam } from './exam/exam.model';
 import { Observable, Subscription } from 'rxjs';
 import { ExamsApiService } from './exam/exam-api.service';
-import { DocumentApiService } from './exam/document-api.service';
+import { DocumentApiService, SearchResult } from './exam/document-api.service';
 
 @Component({
   selector: 'app-root',
@@ -20,6 +20,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private readonly _filename = "king-i-150";
   private _searchInput: string = "";
   documents: string = "";
+  searchResult: SearchResult = {};
 
   constructor(
     private examsApi: ExamsApiService,
@@ -35,7 +36,7 @@ export class AppComponent implements OnInit, OnDestroy {
     //     },
     //     console.error
     //   );
-    this.documentsApi.initDocDict().subscribe((error: any)=>{console.error("Error initializing dictionaries", error);});
+    //this.documentsApi.initDocDict().subscribe((error: any)=>{console.error("Error initializing dictionaries", error);});
     this.documentsApi.initDoc(this._filename).subscribe((content: string) => {
       this.documents = content ?? "";
     });
@@ -51,6 +52,9 @@ export class AppComponent implements OnInit, OnDestroy {
 
   searchText() {
     this.test = this._searchInput;
+    this.documentsApi.searchText(this._filename, this.test).subscribe((response: SearchResult) => {
+      this.searchResult = response;
+    });
     return;
   }
 

@@ -11,15 +11,15 @@ export class DocumentApiService {
   constructor(private http: HttpClient) {
   }
 
-  // init dictionary
-  initDocDict(): Observable<any> {
-    return this.http.get<any>(`${API_URL}/init`).pipe(
-      catchError((error: any) => {
-        console.error("Error found when initializing dictionaries for documents", error);
-        return throwError("Error occurred while initializing dictionaries for documents");
-      })
-    );
-  }
+  // // init dictionary
+  // initDocDict(): Observable<any> {
+  //   return this.http.get<any>(`${API_URL}/init`).pipe(
+  //     catchError((error: any) => {
+  //       console.error("Error found when initializing dictionaries for documents", error);
+  //       return throwError("Error occurred while initializing dictionaries for documents");
+  //     })
+  //   );
+  // }
 
   // fetch the documents
   initDoc(filename: string): Observable<string> {
@@ -31,8 +31,33 @@ export class DocumentApiService {
         })
     );
   }
+
+  // search text in the documents
+  searchText(filename: string, searchText: string): Observable<SearchResult> {
+    return this.http.get<SearchResult>(`${API_URL}/search_text/${filename}/${searchText}`).pipe(
+      map((response: SearchResult) => {return response ?? new Observable<SearchResult>();}),
+      catchError((error: any) => {
+        console.error("Error found when initializing document: ", error);
+        return new Observable<SearchResult>();
+    })
+    );
+  }
 }
 interface DocText {
     content?: string,
     error?: string
+}
+
+export interface Occurrence {
+  line: number;
+  start: number;
+  end: number;
+  in_sentence: string;
+}
+
+export interface SearchResult {
+  query_text?: string,
+  number_of_occurrences?: string,
+  occurences?: Occurrence[],
+  error?: string
 }
