@@ -15,6 +15,7 @@ export class AppComponent implements OnInit {
   private _searchInput: string = "";
   private _isSearch: boolean = false;
   private _isButtonDisabled: boolean = false;
+  private _isInValidInput: boolean = false;
   documents: string = "";
   searchResult: SearchResult = {};
 
@@ -49,14 +50,27 @@ export class AppComponent implements OnInit {
     this._searchInput = value ?? '';
   }
 
+  get isInValidSearchInput(): boolean {
+    return this._isInValidInput;
+  }
+
+  checkIfSearchTextInvalid(): boolean {
+    this._isInValidInput = this._searchInput.length === 0 || this._searchInput === " " || this._searchInput === "\n";
+    return this._isInValidInput;
+  };
+
   searchText() {
-    this._isButtonDisabled = true;
-    this.test = this._searchInput;
-    this.documentsApi.searchText(this._filename, this.test).subscribe((response: SearchResult) => {
-      this.searchResult = response;
-      this._isSearch = true;
-      this._isButtonDisabled = false;
-    });
+    if (!this.checkIfSearchTextInvalid()) {
+      this._isButtonDisabled = true;
+      this.test = this._searchInput;
+      this.documentsApi.searchText(this._filename, this.test).subscribe((response: SearchResult) => {
+        this.searchResult = response;
+        this._isSearch = true;
+        this._isButtonDisabled = false;
+      });
+    } else {
+      this._isSearch = false;
+    }
     return;
   }
 }

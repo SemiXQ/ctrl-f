@@ -122,9 +122,7 @@ def build_search_result_info(sentences, line_idx, start_idx, end_idx, sentence_i
     new_dict["in_sentence"] = sentences[sentence_idx]
     return new_dict
 
-def generalSearchText(filename, word_in_search):
-    word_dict = _load_dict(filename)
-    print("successfully load word_dict", len(word_dict))
+def generalSearchText(filename, word_in_search, word_dict):
     sentences = _read_sentences(filename)
     print("successfully load sentences", len(sentences))
     word_sentence_set_list = []
@@ -172,9 +170,11 @@ def generalSearchText(filename, word_in_search):
 
 def searchText(filename, searchContent):
     print("searching text")
+    word_dict = _load_dict(filename)
+    print("successfully load word_dict", len(word_dict))
     searchContent = searchContent.replace("%20", " ")
     word_in_search = word_tokenize(searchContent)
-    occurencies = generalSearchText(filename, word_in_search)
+    occurencies = generalSearchText(filename, word_in_search, word_dict)
 
     res_dict = {}
     res_dict["query_text"] = searchContent
@@ -184,10 +184,20 @@ def searchText(filename, searchContent):
 
 def searchTextWithPrefixAtTail(filename, searchContent):
     print("searching text with prefix at tail----")
+    word_dict = _load_dict(filename)
+    print("successfully load word_dict", len(word_dict))
     searchContent = searchContent.replace("%20", " ")
     word_in_search = word_tokenize(searchContent)
-    # treat the last word as prefix and search it in trie tree
-    occurencies = generalSearchText(filename, word_in_search)
+    # treat the last word (word_in_search[-1]) as prefix and search it in trie tree
+
+    # design
+    # use the keys of word_in_search (as vocabulary) to initialize trie tree
+    # find all the candidate words in trie tree with the prefix
+    # for each candidate word, to get occurrencies in the way simialr as searchText()
+    # adjust the end index in occurrencies based on search context length
+
+    # sorry I don-t have time to implement it and the following code are not for prefix match (I haven-t modify them)
+    occurencies = generalSearchText(filename, word_in_search, word_dict)
 
     res_dict = {}
     res_dict["query_text"] = searchContent
