@@ -8,6 +8,19 @@
     <input #searchContent type="text" (keyup)="searchInput=searchContent.value">
     <button (click)="searchText()">Search</button>
   </div>
+  <div id="search-result" *ngIf="isSearch">
+    <div *ngIf="isSearchResultFound; else searchResultNotFound">
+      The matched texts are found in:
+      <ul>
+        <li *ngFor="let info of searchResult.occurences">
+          Line: {{info.line}}, start: {{info.start}}, end: {{info.end}}, in sentence: {{info.in_sentence}}
+        </li>
+      </ul>
+    </div>
+    <ng-template #searchResultNotFound>
+      The text does not exist in current document.
+    </ng-template>
+  </div>
   <ul>
     <!--li *ngFor="let exam of examsList">
       {{exam.title}}
