@@ -5,6 +5,7 @@
   </div>
   <div id="search-bar">
     <h2>You can search text here: </h2>
+    <div>(Note: The text is sensitive to capitalization of letters.)</div>
     <input #searchContent type="text" (keyup)="searchInput=searchContent.value">
     <button (click)="searchText()" [disabled]="isButtonDisabled">Search</button>
   </div>
