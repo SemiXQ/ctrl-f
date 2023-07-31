@@ -3,6 +3,7 @@ import json
 import nltk
 from nltk.tokenize import sent_tokenize, word_tokenize
 from collections import deque
+from .trietree import Trie
 
 nltk.download('punkt')
 
@@ -76,14 +77,15 @@ def init_dict():
         dict_file_path = os.path.join(file_dict_path, f'{file_name}_dict.txt')
         # sentences_ref_file_path = os.path.join(file_dict_path, f'{file_name}_sentence.txt')
         if not os.path.exists(dict_file_path):
+            # init dict file for the document
             new_dict, sentences = get_word_details(os.path.join(file_path, f'{file_name}.txt'))
             with open(dict_file_path, 'w') as file:
                 for key, value in new_dict.items():
                     json_obj = json.dumps({key: value})
                     file.write(json_obj + '\n')
-            # with open(sentences_ref_file_path, 'w') as file:
-            #     for sentence in sentences:
-            #         file.write(sentence+'\n')
+            # init trie tree for the document
+            # TODO: implement save_to_file_bfs() and load_from_file_bfs() in trietree 
+            # and call the save method here
 
 def _load_dict(filename):
     base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -120,13 +122,11 @@ def build_search_result_info(sentences, line_idx, start_idx, end_idx, sentence_i
     new_dict["in_sentence"] = sentences[sentence_idx]
     return new_dict
 
-def searchText(filename, searchContent):
-    searchContent = searchContent.replace("%20", " ")
+def generalSearchText(filename, word_in_search):
     word_dict = _load_dict(filename)
     print("successfully load word_dict", len(word_dict))
     sentences = _read_sentences(filename)
     print("successfully load sentences", len(sentences))
-    word_in_search = word_tokenize(searchContent)
     word_sentence_set_list = []
     word_infos = []
     # TODO: change it and make the last word work as a prefix later
@@ -148,7 +148,7 @@ def searchText(filename, searchContent):
             ref = ref & word_sentence_set_list[i]
         noMatch = (len(ref)==0)
     if noMatch:
-        return {}
+        return []
     # if match exists
     word_sentence_set_list = ref
     occurencies = []
@@ -167,6 +167,27 @@ def searchText(filename, searchContent):
                 break
         res = build_search_result_info(sentences, line_idx, start_idx, end_idx, sentence_idx)
         occurencies.append(res)
+
+    return occurencies
+
+def searchText(filename, searchContent):
+    print("searching text")
+    searchContent = searchContent.replace("%20", " ")
+    word_in_search = word_tokenize(searchContent)
+    occurencies = generalSearchText(filename, word_in_search)
+
+    res_dict = {}
+    res_dict["query_text"] = searchContent
+    res_dict["number_of_occurrences"] = len(occurencies)
+    res_dict["occurences"] = occurencies
+    return res_dict
+
+def searchTextWithPrefixAtTail(filename, searchContent):
+    print("searching text with prefix at tail----")
+    searchContent = searchContent.replace("%20", " ")
+    word_in_search = word_tokenize(searchContent)
+    # treat the last word as prefix and search it in trie tree
+    occurencies = generalSearchText(filename, word_in_search)
 
     res_dict = {}
     res_dict["query_text"] = searchContent

@@ -52,7 +52,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   get isSearchResultFound(): boolean {
-    return this.searchResult.occurences !== undefined;
+    return this.searchResult.occurences !== undefined && this.searchResult.occurences.length !== 0;
   }
 
   set searchInput(value: string) {
