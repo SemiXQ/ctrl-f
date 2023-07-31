@@ -65,8 +65,18 @@ def before_request_handler()
 ```
 In this project, I use `jsonify` method to build the json object in response, which will use "application/json" type in Chrome.
 
-###
-(1) The efficiency consideration for search / indexing (algorithm and data structure):
+### Search and indexing design
+**(1) The efficiency consideration for search / indexing (algorithm and data structure):**
+
+In this project, I initialized the `word -> word infos` dictionary for each documents once and stored the dictionaries with a json-like format in files separately. 
+The `word infos`includes information of each occurrency of the word in the documentation, where the `info` includes the line index, start column index, end column index and sentence index of the word's location in one occurrency. While, before I started the project, I considered to store the word infos in MySQl database, but I found that the current way to store it was more efficient, as it was `O(1)` time complexity to search by key in dictionary object. Besides, as nosql database also uses json-like data storage format, my current method is easy to transit to using nosql database for large-scale data.
+
+As for searching, I splitted the search text into a list of words, and got their word infos from the dictionary. Then I took a intersect operation on the sets of sentence indexes where words occur, to find out the solution candidates, as the words should occurs together in a sentence. While, in the current code, there is an issue, which I mentioned in the test case 6. I thought that issue could be fixed by using start and end indexes of word to check if they did match and popout the unmatched candidates from the deque or stack (depending on how the candidates were stored in code). I will fix it in the future if I have time.
+
+While, as for indexing, I thought Trie Tree algorithm could help if the scale of data is large. However, based on current data size, I thought the dictionary was efficient enough, as it could be time consuming if we stored the nodes of Trie Tree in the file and loaded it for searching text considering such small data size. (As each node in Trie Tree represents one char, 
+if the word is long and the vocabulary is large, then the Trie Tree could have lots of layers and lots of nodes each layer(<= 52 considering upper and lower case without special characters)). I defined the Trie Tree in ./back-end/src/docdict/trietree.py, which is modified based on my previous practice of trie tree in leetcode practice. Due to the time limit, I didn't finish the whole functionalities of trie tree and the method to search considering the last word as a possible prefix. The idea is to use the keys (words) of dictionary to build the trie tree and get possible candidate words with its index in data storage (database or txt file) based on the prefix.
+
+However, for the large data size, I think the most efficient way for searching is to create a 'n-gram -> phrase infos' dictionary directly, if the storage is adequate. While, to reduce the storage demand, it could be good to use semi-tokenization as what BERT does to generate the vocabulary.
 
 **(2) To scale to larger texts:**
 
@@ -82,7 +92,7 @@ where the dictionary items inside the list have the following format: `{"line_id
 We can deploy the front-end static file and containerized back-end dockerfile as two separate services onto cloud server. Besides, store the `word -> word info` dictionary into MongoDB, other than current txt file. I am sorry that I don't have much knowledge about how to build microservice on cloud platform, so I cannot get into details at this time, but I plan to learn it later.
 
 ### tests
-I am sorry that I didn't add CI test cases at this time, due to a busy weekend. I tested the functionality manually with some test cases instead. The test cases I used are as follows:
+I am sorry that I didn't add CI test cases due to the time. I tested the functionality manually with some test cases instead. The test cases I used are as follows:
 ``` plain text with a python styled comments
 "Now is" # functionality test
 "now is" # test for case sensitivity
