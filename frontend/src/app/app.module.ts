@@ -4,8 +4,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { HttpClientModule } from '@angular/common/http';
-import { ExamsApiService } from './exam/exam-api.service';
-import { DocumentApiService } from './exam/document-api.service';
+import { DocumentApiService } from './documentSearch/document-api.service';
 
 @NgModule({
   declarations: [
@@ -17,7 +16,6 @@ import { DocumentApiService } from './exam/document-api.service';
     HttpClientModule,
   ],
   providers: [
-    ExamsApiService, 
     DocumentApiService,
   ],
   bootstrap: [AppComponent]

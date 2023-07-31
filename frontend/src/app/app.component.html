@@ -6,7 +6,7 @@
   <div id="search-bar">
     <h2>You can search text here: </h2>
     <input #searchContent type="text" (keyup)="searchInput=searchContent.value">
-    <button (click)="searchText()">Search</button>
+    <button (click)="searchText()" [disabled]="isButtonDisabled">Search</button>
   </div>
   <div id="search-result" *ngIf="isSearch">
     <div *ngIf="isSearchResultFound; else searchResultNotFound">
@@ -21,14 +21,6 @@
       The text does not exist in current document.
     </ng-template>
   </div>
-  <ul>
-    <!--li *ngFor="let exam of examsList">
-      {{exam.title}}
-    </li-->
-  </ul>
-  <div></div>
-  <button (click)="TriggerRequest()">Click Me</button>
-  <div>{{testRequest}}</div>
   <article *ngIf="isValidDocument">
     <pre>{{documents}}</pre>
   </article>

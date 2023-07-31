@@ -1,43 +1,29 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Exam } from './exam/exam.model';
-import { Observable, Subscription } from 'rxjs';
-import { ExamsApiService } from './exam/exam-api.service';
-import { DocumentApiService, SearchResult, Occurrence } from './exam/document-api.service';
+import { DocumentApiService, SearchResult, Occurrence } from './documentSearch/document-api.service';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.less']
 })
-export class AppComponent implements OnInit, OnDestroy {
+export class AppComponent implements OnInit {
   title = 'frontend';
-  //examsListSubs!: Subscription;
-  //examsList!: Exam[];
 
-  testRequest: string = "";
   test: string = "";
 
   private readonly _filename = "king-i-150";
   private _searchInput: string = "";
   private _isSearch: boolean = false;
+  private _isButtonDisabled: boolean = false;
   documents: string = "";
   searchResult: SearchResult = {};
 
   constructor(
-    private examsApi: ExamsApiService,
     private documentsApi: DocumentApiService
   ) {
   }
 
   ngOnInit() {
-    // this.examsListSubs = this.examsApi
-    //   .getExams()
-    //   .subscribe(res => {
-    //       this.examsList = res;
-    //     },
-    //     console.error
-    //   );
-    //this.documentsApi.initDocDict().subscribe((error: any)=>{console.error("Error initializing dictionaries", error);});
     this.documentsApi.initDoc(this._filename).subscribe((content: string) => {
       this.documents = content ?? "";
     });
@@ -55,27 +41,22 @@ export class AppComponent implements OnInit, OnDestroy {
     return this.searchResult.occurences !== undefined && this.searchResult.occurences.length !== 0;
   }
 
+  get isButtonDisabled(): boolean {
+    return this._isButtonDisabled;
+  }
+
   set searchInput(value: string) {
     this._searchInput = value ?? '';
   }
 
   searchText() {
+    this._isButtonDisabled = true;
     this.test = this._searchInput;
     this.documentsApi.searchText(this._filename, this.test).subscribe((response: SearchResult) => {
       this.searchResult = response;
       this._isSearch = true;
+      this._isButtonDisabled = false;
     });
     return;
-  }
-
-  TriggerRequest() {
-    this.examsApi.getTest().subscribe((message:string) => {
-      this.testRequest = message;
-    });
-    console.log(this.testRequest);
-  }
-
-  ngOnDestroy() {
-    //this.examsListSubs.unsubscribe();
   }
 }
